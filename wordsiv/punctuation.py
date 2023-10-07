@@ -62,5 +62,13 @@ default_punctuation = {
         "end": {"": 0.00001, ".": 100, "?": 40, "!": 20},
         "inner": {"": 100, ",": 60, "—": 40, ":": 30, ";": 20},
         "wrap": {("", ""): 100, ("“", "”"): 9, ("‘", "’"): 6},
+    },
+    "ar": {
+        "start": {"": 100},
+        # make no ending punctuation extremely low probability so
+        # it only happens when period is not available
+        "end": {"": 0.00001, ".": 100, "?": 40, "!": 20},
+        "inner": {"": 100, ",": 60, ":": 30, ";": 20},
+        "wrap": {("", ""): 100, ("“", "”"): 9, ("‘", "’"): 6},
     }
 }
