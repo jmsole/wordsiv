@@ -142,6 +142,7 @@ class RandomModel(BaseSentenceModel):
             min_width (int): Minimum approximate rendered word width
             max_width (int): Maximum approximate rendered word width
             width (int): Approximate rendered word width
+            must (str): Characters that must be present
         """
 
         filtered_data_wrap = filter_data(
@@ -183,6 +184,7 @@ class RandomModel(BaseSentenceModel):
             min_width (int): Minimum approximate rendered word width
             max_width (int): Maximum approximate rendered word width
             width (int): Approximate rendered word width
+            must (str): Characters that must be present
         """
 
         if not num_words:
@@ -353,6 +355,7 @@ def filter_data(
     max_width=BIG_NUM,
     width_tolerance=DEFAULT_WIDTH_TOLERANCE,
     width=None,
+    must=None,
 ):
 
     dw = data_wrap
@@ -381,10 +384,33 @@ def filter_data(
     if num_top:
         dw = top_filter(dw, num_top)
 
+    if must:
+        dw = must_filter(dw, glyphs_string, must)
+
     if not dw.data:
         raise ValueError("No words available with specified parameters")
 
     return dw
+
+
+@unwrap(DataWrapper)
+@lru_cache(maxsize=None)
+def must_filter(words_count, available_glyphs_string, must_glyphs_string):
+    """
+    return items that contain the the required glyphs
+
+    Example:
+    >>> data = (("Duck", 1), ("pig", 2), ("thing", 3))
+    >>> must_filter(data,"Dcghiknptu", "g")
+    (("thing", 3), ('pig', 2))
+    """
+    must_removed_glyphs_string = re.sub("[" + must_glyphs_string + "]","", available_glyphs_string)
+
+    return tuple(
+        tuple((word, count))
+        for word, count in words_count
+        if not has_glyphs(word, must_removed_glyphs_string)
+    )
 
 
 @unwrap(DataWrapper)
