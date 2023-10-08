@@ -9,7 +9,7 @@ import io
 import re
 import json
 
-from ..utilities import has_glyphs, Hashabledict, HashabledictKeys
+from ..utilities import has_glyphs, must_have_glyphs, Hashabledict, HashabledictKeys
 from ..source import BaseSource
 from .base_sentence_model import BaseSentenceModel
 from ..datawrapper import DataWrapper, unwrap
@@ -385,7 +385,7 @@ def filter_data(
         dw = top_filter(dw, num_top)
 
     if must:
-        dw = must_filter(dw, glyphs_string, must)
+        dw = must_filter(dw, must)
 
     if not dw.data:
         raise ValueError("No words available with specified parameters")
@@ -395,21 +395,20 @@ def filter_data(
 
 @unwrap(DataWrapper)
 @lru_cache(maxsize=None)
-def must_filter(words_count, available_glyphs_string, must_glyphs_string):
+def must_filter(words_count, must_glyphs_string):
     """
     return items that contain the the required glyphs
 
     Example:
-    >>> data = (("Duck", 1), ("pig", 2), ("thing", 3))
-    >>> must_filter(data,"Dcghiknptu", "g")
-    (("thing", 3), ('pig', 2))
+    >>> data = (("duck", 1), ("pig", 2), ("thing", 3), ("zorro", 4), ("page", 5))
+    >>> must_filter(data, "gip")
+    (('pig', 2), ('thing', 3), ('page', 5))
     """
-    must_removed_glyphs_string = re.sub("[" + must_glyphs_string + "]","", available_glyphs_string)
 
     return tuple(
         tuple((word, count))
         for word, count in words_count
-        if not has_glyphs(word, must_removed_glyphs_string)
+        if must_have_glyphs(word, must_glyphs_string)
     )
 
 
