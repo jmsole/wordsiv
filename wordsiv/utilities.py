@@ -35,14 +35,6 @@ def has_glyphs(word, available_glyphs_string):
         return True
 
 
-@lru_cache(maxsize=None)
-def must_have_glyphs(word, must_glyphs_string):
-    if must_glyphs_string:
-        return any(char in must_glyphs_string for char in word)
-    else:
-        return True
-
-
 # A Dictionary with a hash represented by its keys and values
 class Hashabledict(dict):
     def __hash__(self):

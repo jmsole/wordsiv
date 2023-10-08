@@ -9,7 +9,7 @@ import io
 import re
 import json
 
-from ..utilities import has_glyphs, must_have_glyphs, Hashabledict, HashabledictKeys
+from ..utilities import has_glyphs, Hashabledict, HashabledictKeys
 from ..source import BaseSource
 from .base_sentence_model import BaseSentenceModel
 from ..datawrapper import DataWrapper, unwrap
@@ -408,7 +408,7 @@ def must_filter(words_count, must_glyphs_string):
     return tuple(
         tuple((word, count))
         for word, count in words_count
-        if must_have_glyphs(word, must_glyphs_string)
+        if has_glyphs(must_glyphs_string, word)
     )
 
 
