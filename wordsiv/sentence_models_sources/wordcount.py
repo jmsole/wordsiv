@@ -9,7 +9,7 @@ import io
 import re
 import json
 
-from ..utilities import has_glyphs, Hashabledict, HashabledictKeys
+from ..utilities import has_glyphs, has_glyph_position, Hashabledict, HashabledictKeys
 from ..source import BaseSource
 from .base_sentence_model import BaseSentenceModel
 from ..datawrapper import DataWrapper, unwrap
@@ -119,7 +119,6 @@ class RandomModel(BaseSentenceModel):
         return model, kwargs
 
     def __init__(self, data_wrap, available_glyphs, font_info, rand, language):
-
         # No filtering on initialization since filtering happens at word level
         self.data_wrap = data_wrap
         self.available_glyphs = available_glyphs
@@ -143,6 +142,7 @@ class RandomModel(BaseSentenceModel):
             max_width (int): Maximum approximate rendered word width
             width (int): Approximate rendered word width
             must (str): Characters that must be present
+            position (str): Where a single must character should be in a word
         """
 
         filtered_data_wrap = filter_data(
@@ -185,6 +185,7 @@ class RandomModel(BaseSentenceModel):
             max_width (int): Maximum approximate rendered word width
             width (int): Approximate rendered word width
             must (str): Characters that must be present
+            position (str): Where a single must character should be in a word
         """
 
         if not num_words:
@@ -262,7 +263,6 @@ class SequentialModel(BaseSentenceModel):
         return model, kwargs
 
     def __init__(self, data_wrap, available_glyphs, font_info):
-
         # No filtering on initialization since filtering happens at word level
         self.data_wrap = data_wrap
         self.available_glyphs = available_glyphs
@@ -356,8 +356,8 @@ def filter_data(
     width_tolerance=DEFAULT_WIDTH_TOLERANCE,
     width=None,
     must=None,
+    pos=None,
 ):
-
     dw = data_wrap
 
     glyphs_string = available_glyphs.glyphs_string if available_glyphs.limited else None
@@ -384,11 +384,18 @@ def filter_data(
     if num_top:
         dw = top_filter(dw, num_top)
 
-    if must:
+    if must and pos:
+        dw = pos_filter(dw, must, pos)
+    elif must and not pos:
         dw = must_filter(dw, must)
+    else:
+        dw = dw
 
     if not dw.data:
-        raise ValueError("No words available with specified parameters")
+        # raise ValueError("No words available with specified parameters")
+        print("No words available with specified parameters: " + must + ", " + pos)
+        dw = data_wrap
+        dw = available_filter(dw, glyphs_string)
 
     return dw
 
@@ -397,7 +404,7 @@ def filter_data(
 @lru_cache(maxsize=None)
 def must_filter(words_count, must_glyphs_string):
     """
-    return items that contain the the required glyphs
+    return items that contain the required glyph in a given position in a word
 
     Example:
     >>> data = (("duck", 1), ("pig", 2), ("thing", 3), ("zorro", 4), ("page", 5))
@@ -409,6 +416,25 @@ def must_filter(words_count, must_glyphs_string):
         tuple((word, count))
         for word, count in words_count
         if has_glyphs(must_glyphs_string, word)
+    )
+
+
+@unwrap(DataWrapper)
+@lru_cache(maxsize=None)
+def pos_filter(words_count, must_glyphs_string, position):
+    """
+    return items that contain the required glyphs
+
+    Example:
+    >>> data = (("duck", 1), ("pig", 2), ("thing", 3), ("zorro", 4), ("page", 5))
+    >>> must_filter(data, "gip")
+    (('pig', 2), ('thing', 3), ('page', 5))
+    """
+
+    return tuple(
+        tuple((word, count))
+        for word, count in words_count
+        if has_glyph_position(word, must_glyphs_string, position)
     )
 
 
