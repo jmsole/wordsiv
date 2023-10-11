@@ -94,16 +94,21 @@ class WordCountSource(BaseSource):
 #####################################################################################
 
 
-def prob_wordcount_gen(data_wrap, rand):
+def prob_wordcount_gen(data_wrap, rand, count=1):
     word_list, counts = zip_tuple(data_wrap.data)
     while True:
-        yield rand.choices(word_list, k=1, weights=counts)[0]
+        yield rand.choices(word_list, k=count, weights=counts)[0]
 
 
-def rand_wordcount_gen(data_wrap, rand):
+def rand_wordcount_gen(data_wrap, rand, count=1):
     word_list, _ = zip_tuple(data_wrap.data)
     while True:
-        yield rand.choice(word_list)
+        if count == 1:
+            yield rand.choice(word_list)
+        elif len(word_list) < count:
+            yield ""
+        else:
+            yield rand.sample(word_list, count)
 
 
 class RandomModel(BaseSentenceModel):
@@ -126,7 +131,7 @@ class RandomModel(BaseSentenceModel):
         self.rand = rand
         self.language = language
 
-    def word(self, prob=True, **kwargs):
+    def word(self, word_count=1, prob=True, **kwargs):
         """Return a random word
 
         Keyword Args:
@@ -143,17 +148,22 @@ class RandomModel(BaseSentenceModel):
             width (int): Approximate rendered word width
             must (str): Characters that must be present
             position (str): Where a single must character should be in a word
+            word_count (int): Number of words to pass to words()
         """
 
         filtered_data_wrap = filter_data(
             self.data_wrap, self.available_glyphs, self.font_info, **kwargs
         )
-        if prob:
-            gen = prob_wordcount_gen(filtered_data_wrap, self.rand)
-        else:
-            gen = rand_wordcount_gen(filtered_data_wrap, self.rand)
 
-        return next(gen)
+        if isinstance(filtered_data_wrap, str):
+            gen = filtered_data_wrap
+            return gen
+        elif prob:
+            gen = prob_wordcount_gen(filtered_data_wrap, self.rand)
+            return next(gen)
+        else:
+            gen = rand_wordcount_gen(filtered_data_wrap, self.rand, count=word_count)
+            return next(gen)
 
     def words(
         self,
@@ -194,10 +204,27 @@ class RandomModel(BaseSentenceModel):
         def should_cap_first(n):
             return cap or (cap_first and n == 0)
 
-        return [
-            self.word(cap=should_cap_first(n), uc=uc, lc=lc, **kwargs)
-            for n in range(num_words)
-        ]
+        # return [
+        #     self.word(cap=should_cap_first(n), uc=uc, lc=lc, **kwargs)
+        #     for n in range(num_words)
+        # ]
+
+        # Don't advance the count in the for loop unless the inner if is False and you append something to the list.
+        # Ideally, I'd be able to run the loop through the entire list of words, taking out words when they don't work,
+        # and until I know I've gone through all words. That way I won't run through an infinte loop of trying stuff that might not work.
+        # wds = []
+        # for n in range(num_words):
+        #     findWords = self.word(cap=should_cap_first(n), uc=uc, lc=lc, **kwargs)
+        #     if findWords not in wds:
+        #         wds.append(findWords)
+
+        return self.word(
+            word_count=num_words,
+            cap=should_cap_first(num_words),
+            uc=uc,
+            lc=lc,
+            **kwargs
+        )
 
     def sentence(
         self,
@@ -394,8 +421,9 @@ def filter_data(
     if not dw.data:
         # raise ValueError("No words available with specified parameters")
         print("No words available with specified parameters: " + must + ", " + pos)
-        dw = data_wrap
-        dw = available_filter(dw, glyphs_string)
+        # dw = data_wrap
+        # dw = available_filter(dw, glyphs_string)
+        dw = ""
 
     return dw
 
