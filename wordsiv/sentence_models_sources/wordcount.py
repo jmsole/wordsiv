@@ -97,7 +97,7 @@ class WordCountSource(BaseSource):
 def prob_wordcount_gen(data_wrap, rand, count=1):
     word_list, counts = zip_tuple(data_wrap.data)
     while True:
-        yield rand.choices(word_list, k=count, weights=counts)[0]
+        yield rand.choices(word_list, k=count, weights=counts)
 
 
 def rand_wordcount_gen(data_wrap, rand, count=1):
@@ -159,7 +159,7 @@ class RandomModel(BaseSentenceModel):
             gen = filtered_data_wrap
             return gen
         elif prob:
-            gen = prob_wordcount_gen(filtered_data_wrap, self.rand)
+            gen = prob_wordcount_gen(filtered_data_wrap, self.rand, count=word_count)
             return next(gen)
         else:
             gen = rand_wordcount_gen(filtered_data_wrap, self.rand, count=word_count)
