@@ -201,9 +201,6 @@ class RandomModel(BaseSentenceModel):
         if not num_words:
             num_words = self.rand.randint(min_num_words, max_num_words)
 
-        def should_cap_first(n):
-            return cap or (cap_first and n == 0)
-
         # return [
         #     self.word(cap=should_cap_first(n), uc=uc, lc=lc, **kwargs)
         #     for n in range(num_words)
@@ -218,13 +215,10 @@ class RandomModel(BaseSentenceModel):
         #     if findWords not in wds:
         #         wds.append(findWords)
 
-        return self.word(
-            word_count=num_words,
-            cap=should_cap_first(num_words),
-            uc=uc,
-            lc=lc,
-            **kwargs
-        )
+        foundWords = self.word(word_count=num_words, cap=cap, uc=uc, lc=lc, **kwargs)
+        if cap_first:
+            foundWords[0] = foundWords[0].capitalize()
+        return foundWords
 
     def sentence(
         self,
@@ -255,7 +249,6 @@ class RandomModel(BaseSentenceModel):
             max_width (int): Maximum approximate rendered word width
             width (int): Approximate rendered word width
         """
-
         words = self.words(
             cap_first=cap_sent,
             min_num_words=min_sent_len,
