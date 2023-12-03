@@ -43,15 +43,15 @@ First, install wordsiv with pip:
 
 ```bash
 # we install straight from git (for now!)
-$ pip install git+https://github.com/tallpauley/wordsiv # byexample: +pass
+$ pip install git+https://github.com/jmsole/wordsiv # byexample: +pass
 ```
 
 Next, install one or more source packages from the [releases page][releases] of
 the [source packages][source-packages] repo:
 
 ```bash
-$ base=https://github.com/tallpauley/wordsiv-source-packages/releases/download
-$ pkg=en_markov_gutenberg-0.1.0/en_markov_gutenberg-0.1.0-py3-none-any.whl
+$ base=https://github.com/jmsole/wordsiv-source-packages/releases/download
+$ pkg=fa_wordcount_subs-0.1.0/fa_wordcount_subs-0.1.0-py3-none-any.whl
 $ pip install $base/$pkg # byexample: +pass
 ```
 
@@ -71,7 +71,7 @@ If you prefer to work in the [DrawBot app][drawbot], you can follow this procedu
 to install Wordsiv:
 
 1. Install the `wordsiv` package via **Python->Install Python Packages**:
-     - Enter ```git+https://github.com/tallpauley/wordsiv``` and click **Go!**
+     - Enter ```git+https://github.com/jmsole/wordsiv``` and click **Go!**
      - ***Note:*** you'll probably see lots of red text but it
        should still work just fine
 
